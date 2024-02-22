@@ -4,14 +4,14 @@ class Parser
 {
   Lexer lexer;
 
-  public static Json parse_json(string json_string)
+  public static Json parse_json(string filepath)
 	{
-		return new Parser(json_string).parse_json_value();
+		return new Parser(filepath).parse_json_value();
 	}
 
-  Parser(string json_string)
+  Parser(string filepath)
 	{
-		this.lexer = Lexer.init(json_string);
+		this.lexer = new Lexer(filepath);
 	}
 
   Json parse_json_value()

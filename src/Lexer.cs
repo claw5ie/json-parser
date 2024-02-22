@@ -8,12 +8,14 @@ class Lexer
   Token[] tokens = new Token[LOOKAHEAD];
   byte token_start = 0;
   byte token_count = 0;
-  char[] source = { };
+  char[] source;
   int offset = 0;
+	string filepath;
 
-  public static Lexer init(string json)
+  public Lexer(string filepath)
   {
-    return new Lexer{ source = json.ToArray() };
+		this.source = (File.ReadAllText(filepath) + '\0').ToArray();
+		this.filepath = filepath;
   }
 
   public Token.Tag peek()
