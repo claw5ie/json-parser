@@ -59,8 +59,10 @@ class Lexer
       ;
 
 		var old_i = i;
-    var token = new Token(tag: Token.Tag.End_Of_File,
-													text: new ArraySegment<char>(source, 0, 0));
+    var token = new Token{
+			tag = Token.Tag.End_Of_File,
+			text = new ArraySegment<char>(source, 0, 0)
+		};
 
     if (text[i] == '\0' || i >= source.Length)
 		{

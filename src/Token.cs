@@ -21,10 +21,4 @@ public struct Token
 
   public Tag tag;
   public ArraySegment<char> text;
-
-  public Token(Tag tag, ArraySegment<char> text)
-  {
-    this.tag = tag;
-    this.text = text;
-  }
 };
