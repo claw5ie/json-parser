@@ -11,15 +11,15 @@ public abstract class Json
 
 		public override void debug_print()
 		{
-			Console.Write('{');
+			Console.Write("Object(");
 			foreach (var field in fields)
 			{
 				Console.Write(field.Key);
-				Console.Write(": ");
+				Console.Write(',');
 				field.Value.debug_print();
 				Console.Write(',');
 			}
-			Console.Write('}');
+			Console.Write(')');
 		}
   };
 
@@ -29,13 +29,13 @@ public abstract class Json
 
 		public override void debug_print()
 		{
-			Console.Write('[');
+			Console.Write("Array(");
 			foreach (var value in values)
 			{
 				value.debug_print();
 				Console.Write(',');
 			}
-			Console.Write(']');
+			Console.Write(')');
 		}
   };
 
