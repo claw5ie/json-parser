@@ -1,6 +1,6 @@
 using System.Diagnostics;
 
-class Parser
+public class Parser
 {
   Lexer lexer;
 

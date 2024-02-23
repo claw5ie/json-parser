@@ -1,7 +1,7 @@
 using System;
 using System.Diagnostics;
 
-class Lexer
+public class Lexer
 {
   public const byte LOOKAHEAD = 1;
 
