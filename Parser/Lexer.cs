@@ -12,10 +12,18 @@ public class Lexer
   int offset = 0;
 	string filepath;
 
-  public Lexer(string filepath)
+  public Lexer(string str, bool is_filepath)
   {
-		this.source = (File.ReadAllText(filepath) + '\0').ToArray();
-		this.filepath = filepath;
+		if (is_filepath)
+		{
+			this.source = (File.ReadAllText(str) + '\0').ToArray();
+			this.filepath = str;
+		}
+		else
+		{
+			this.source = (str + '\0').ToArray();
+			this.filepath = "<no file>";
+		}
   }
 
   public Token.Tag peek()
@@ -63,11 +71,12 @@ public class Lexer
 		var old_i = i;
     var token = new Token{
 			tag = Token.Tag.End_Of_File,
-			text = new ArraySegment<char>(source, 0, 0)
+			text = slice(source, old_i, old_i),
 		};
 
     if (text[i] == '\0' || i >= source.Length)
 		{
+
 		}
     else if (text[i] == '"')
 		{
@@ -82,6 +91,7 @@ public class Lexer
 
 			++i;
 			token.tag = Token.Tag.String;
+			token.text = slice(source, old_i + 1, i - 1);
 		}
     else if (Char.IsDigit(text[i]))
 		{
@@ -89,13 +99,14 @@ public class Lexer
 				;
 
 			token.tag = Token.Tag.Number;
+			token.text = slice(source, old_i, i);
 		}
     else if (Char.IsLetter(text[i]))
 		{
 			for (; Char.IsLetter(text[i]); i++)
 				;
 
-			var keyword = new ArraySegment<char>(source, old_i, i - old_i);
+			var keyword = slice(source, old_i, i);
 
 			if (keyword.SequenceEqual("false"))
 				token.tag = Token.Tag.False;
@@ -107,6 +118,8 @@ public class Lexer
 			{
 				Debug.Assert(false);
 			}
+
+			token.text = keyword;
 		}
     else
 		{
@@ -115,26 +128,32 @@ public class Lexer
 			case '{':
 				++i;
 				token.tag = Token.Tag.Open_Curly;
+				token.text = slice(source, old_i, i);
 				break;
 			case '}':
 				++i;
 				token.tag = Token.Tag.Close_Curly;
+				token.text = slice(source, old_i, i);
 				break;
 			case '[':
 				++i;
 				token.tag = Token.Tag.Open_Bracket;
+				token.text = slice(source, old_i, i);
 				break;
 			case ']':
 				++i;
 				token.tag = Token.Tag.Close_Bracket;
+				token.text = slice(source, old_i, i);
 				break;
 			case ':':
 				++i;
 				token.tag = Token.Tag.Colon;
+				token.text = slice(source, old_i, i);
 				break;
 			case ',':
 				++i;
 				token.tag = Token.Tag.Comma;
+				token.text = slice(source, old_i, i);
 				break;
 			default:
 				// Unexpected token
@@ -144,11 +163,15 @@ public class Lexer
 		}
 
 		offset = i;
-		token.text = new ArraySegment<char>(source, old_i, i - old_i);
 
     Debug.Assert(token_count < LOOKAHEAD);
     int index = (token_start + token_count) % LOOKAHEAD;
     tokens[index] = token;
     ++token_count;
   }
+
+	static ArraySegment<char> slice(char[] source, int start, int past_end)
+	{
+		return new ArraySegment<char>(source, start, past_end - start);
+	}
 };

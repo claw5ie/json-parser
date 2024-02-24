@@ -4,14 +4,19 @@ public class Parser
 {
   Lexer lexer;
 
-  public static Json parse_json(string filepath)
+  public static Json parse_json_from_file(string filepath)
 	{
-		return new Parser(filepath).parse_json_value();
+		return new Parser(str: filepath, is_filepath: true).parse_json_value();
 	}
 
-  Parser(string filepath)
+	public static Json parse_json_from_string(string json)
 	{
-		this.lexer = new Lexer(filepath);
+		return new Parser(str: json, is_filepath: false).parse_json_value();
+	}
+
+  Parser(string str, bool is_filepath)
+	{
+		this.lexer = new Lexer(str, is_filepath);
 	}
 
   Json parse_json_value()
@@ -36,7 +41,7 @@ public class Parser
 				expect(Token.Tag.Colon);
 				var value = parse_json_value();
 				// Doesn't take into account repeated fields.
-				fields.Add(token.text.ToArray(), value);
+				fields.Add(new string(token.text), value);
 
 				is_first_iteration = false;
 				tt = peek();
@@ -84,7 +89,7 @@ public class Parser
 			var text = take().text;
 			consume();
 
-			return new Json.String{ value = text.ToArray() };
+			return new Json.String{ value = new string(text) };
 		}
 		case Token.Tag.Number:
 		{

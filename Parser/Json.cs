@@ -1,4 +1,4 @@
-global using JsonObjectFields = System.Collections.Generic.Dictionary<char[], Json>;
+global using JsonObjectFields = System.Collections.Generic.Dictionary<string, Json>;
 global using JsonArrayValues = System.Collections.Generic.List<Json>;
 
 public abstract class Json
@@ -41,7 +41,7 @@ public abstract class Json
 
   public class String: Json
   {
-    public char[] value = { };
+    public string value = "";
 
 		public override void debug_print()
 		{
