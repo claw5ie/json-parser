@@ -19,6 +19,20 @@ public struct Token
     End_Of_File,
   };
 
-  public Tag tag;
-  public ArraySegment<char> text;
+	public abstract class Data
+	{
+		public class String: Data
+		{
+			public string value = "";
+		};
+
+		public class Number: Data
+		{
+			public double value;
+		};
+	};
+
+	public Tag tag;
+	public ArraySegment<char> text;
+	public Data data;
 };

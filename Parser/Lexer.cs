@@ -80,8 +80,61 @@ public class Lexer
 		}
     else if (text[i] == '"')
 		{
-			for (++i; i < source.Length && text[i] != '"'; i++)
-				;
+			var data = new Token.Data.String{ };
+			var unescaped_string = new System.Text.StringBuilder();
+
+			++i;
+			while (i < source.Length && text[i] != '"')
+			{
+				if (text[i] == '\\')
+				{
+					++i;
+					switch (text[i++])
+					{
+					case '"':
+						unescaped_string.Append('"');
+						break;
+					case '\\':
+						unescaped_string.Append('\\');
+						break;
+					case '/':
+						unescaped_string.Append('/');
+						break;
+					case 'b':
+						unescaped_string.Append('\b');
+						break;
+					case 'f':
+						unescaped_string.Append('\f');
+						break;
+					case 'n':
+						unescaped_string.Append('\n');
+						break;
+					case 'r':
+						unescaped_string.Append('\r');
+						break;
+					case 't':
+						unescaped_string.Append('\t');
+						break;
+					case 'u':
+					{
+						var ch = from_four_digit_hex(make_span(text, i));
+						unescaped_string.Append(ch);
+						i += 4;
+					} break;
+					default:
+						// Invalid escape sequence.
+						Debug.Assert(false);
+						break;
+					}
+				}
+				else if (Char.IsControl(text[i]))
+				{
+					// Can't be control sequence.
+					Debug.Assert(false);
+				}
+				else
+					unescaped_string.Append(text[i++]);
+			}
 
 			if (text[i] != '"')
 			{
@@ -89,22 +142,53 @@ public class Lexer
 				Debug.Assert(false);
 			}
 
+			data.value = unescaped_string.ToString();
+
 			++i;
 			token.tag = Token.Tag.String;
 			token.text = slice(source, old_i + 1, i - 1);
+			token.data = data;
 		}
-    else if (Char.IsDigit(text[i]))
+    else if (text[i] == '-' || Char.IsDigit(text[i]))
 		{
-			for (; Char.IsDigit(text[i]); i++)
-				;
+			var data = new Token.Data.Number{ };
+			var start = i;
+
+			{
+				var is_negative = (text[i] == '-');
+
+				if (is_negative)
+					++i;
+
+				i += take_digits(make_span(text, i));
+			}
+
+			if (text[i] == '.')
+			{
+				++i;
+				i += take_digits(make_span(text, i));
+			}
+
+			if (text[i] == 'e' || text[i] == 'E')
+			{
+				++i;
+				var is_negative = (text[i] == '-');
+				if (is_negative || (text[i] == '+'))
+					++i;
+				i += take_digits(make_span(text, i));
+			}
+
+			data.value = Convert.ToDouble(make_span(text, start, i).ToString());
 
 			token.tag = Token.Tag.Number;
 			token.text = slice(source, old_i, i);
+			token.data = data;
 		}
     else if (Char.IsLetter(text[i]))
 		{
-			for (; Char.IsLetter(text[i]); i++)
-				;
+			do
+				++i;
+			while (Char.IsLetter(text[i]));
 
 			var keyword = slice(source, old_i, i);
 
@@ -173,5 +257,73 @@ public class Lexer
 	static ArraySegment<char> slice(char[] source, int start, int past_end)
 	{
 		return new ArraySegment<char>(source, start, past_end - start);
+	}
+
+	static Span<char> make_span(char[] text, int start)
+	{
+		return new Span<char>(text, start, text.Length - start);
+	}
+
+	static Span<char> make_span(char[] text, int start, int past_end)
+	{
+		return new Span<char>(text, start, past_end - start);
+	}
+
+	static bool from_hex_digit(char ch, out char dst)
+	{
+		var ok = true;
+
+		dst = (char)0;
+
+		if ('0' <= ch && ch <= '9')
+			dst = (char)(ch - '0');
+		else if ('a' <= ch && ch <= 'f')
+			dst = (char)(ch - 'a' + 10);
+		else if ('A' <= ch && ch <= 'F')
+			dst = (char)(ch - 'A' + 10);
+		else
+			ok = false;
+
+		return ok;
+	}
+
+	static char from_four_digit_hex(Span<char> text)
+	{
+		if (text.Length < 4)
+		{
+			Debug.Assert(false);
+		}
+
+		char dst = (char)0;
+
+		foreach (var ch in text.Slice(0, 4))
+		{
+			char digit = (char)0;
+
+			if (!from_hex_digit(ch, out digit))
+			{
+				Debug.Assert(false);
+			}
+
+			dst = (char)(16 * dst + digit);
+		}
+
+		return dst;
+	}
+
+	static int take_digits(Span<char> text)
+	{
+		int count = 0;
+
+		if (!Char.IsDigit(text[count]))
+		{
+			Debug.Assert(false);
+		}
+
+		do
+			++count;
+		while (Char.IsDigit(text[count]));
+
+		return count;
 	}
 };

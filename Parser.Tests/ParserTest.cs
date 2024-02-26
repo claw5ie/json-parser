@@ -30,7 +30,7 @@ public class ParserTest
 	}
 
   [Fact]
-	public void test_parser_base_cases()
+  public void test_parser_base_cases()
 	{
 		var false_node = Parser.parse_json_from_string("false");
 		var true_node = Parser.parse_json_from_string("true");
@@ -51,7 +51,77 @@ public class ParserTest
 	}
 
   [Fact]
-	public void test_parser_compound_cases()
+  public void test_parser_string()
+	{
+		string[] inputs = [
+			"\\\"",
+			"\\\\",
+			"\\/",
+			"\\b",
+			"\\f",
+			"\\n",
+			"\\r",
+			"\\t",
+			"\\u1234",
+			"\\u5678",
+			"\\u9ABC",
+			"\\uDEFa",
+			"\\ubcde",
+			"\\uf000",
+			];
+
+		string[] outputs = [
+			"\"",
+			"\\",
+			"/",
+			"\b",
+			"\f",
+			"\n",
+			"\r",
+			"\t",
+			"\x1234",
+			"\x5678",
+			"\x9ABC",
+			"\xDEFa",
+			"\xbcde",
+			"\xf000",
+			];
+
+		for (int i = 0; i < inputs.Length; i++)
+		{
+			var string_node = Parser.parse_json_from_string('"' + inputs[i] + '"');
+
+			Assert.IsType<Json.String>(string_node);
+			Assert.Equal(outputs[i], ((Json.String)string_node).value);
+		}
+	}
+
+  [Fact]
+  public void test_parser_number()
+	{
+		string[] inputs = [
+			"0",
+			"-42",
+			"-69.042",
+			"6e+42",
+			"0e-42",
+			"-69e42",
+			"69.0e42",
+			"69.2e+0",
+			"69.42e-5",
+			];
+
+		for (int i = 0; i < inputs.Length; i++)
+		{
+			var number_node = Parser.parse_json_from_string(inputs[i]);
+
+			Assert.IsType<Json.Number>(number_node);
+			Assert.Equal(Convert.ToDouble(inputs[i]), ((Json.Number)number_node).value);
+		}
+	}
+
+  [Fact]
+  public void test_parser_compound_cases()
 	{
 		var empty_object_node = Parser.parse_json_from_string("{ }");
 		var object_node = Parser.parse_json_from_string("{ \"foo\": null, \"bar\": 69 }");

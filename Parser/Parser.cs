@@ -86,22 +86,17 @@ public class Parser
 			return new Json.Null{ };
 		case Token.Tag.String:
 		{
-			var text = take().text;
+			var data = take().data;
 			consume();
 
-			return new Json.String{ value = new string(text) };
+			return new Json.String{ value = ((Token.Data.String)data).value };
 		}
 		case Token.Tag.Number:
 		{
-			long value = 0;
-
-			var text = take().text;
-			foreach (char ch in text)
-				value = 10 * value + (ch - '0');
-
+			var data = (Token.Data.Number)take().data;
 			consume();
 
-			return new Json.Number{ value = value };
+			return new Json.Number{ value = data.value };
 		}
 		default:
 			// error.
