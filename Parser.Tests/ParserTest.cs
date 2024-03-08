@@ -164,4 +164,37 @@ public class ParserTest
 			Assert.IsType<Json.Null>(second);
 		}
 	}
+
+  [Fact]
+  public void test_lexer_expections()
+	{
+		string[] inputs = [
+			"\"foo",
+			"\"\\l\"",
+			"\"\x0\"",
+			"foo",
+			"%",
+			"\"\\u0\"",
+			"\"\\ughij\"",
+			"-a",
+			];
+
+		string[] outputs = [
+			"unterminated string",
+			"invalid escape sequence 'l'",
+			"unexpected control sequence '0'",
+			"invalid keyword 'foo'",
+			"invalid character '%'",
+			"expected at least 4 characters, but got 2",
+			"expected hexadecimal digit, but got 'g'",
+			"expected digit, but got 'a'",
+			];
+
+		for (int i = 0; i < inputs.Length; i++)
+		{
+			var lexer = new Lexer(str: inputs[i], is_filepath: false);
+			var excp = Assert.Throws<LexingException>(() => lexer.take());
+			Assert.Equal(outputs[i], excp.Message);
+		}
+	}
 }

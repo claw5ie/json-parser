@@ -1,5 +1,14 @@
 using System.Diagnostics;
 
+public class ParsingException: Exception
+{
+	public ParsingException(string text)
+		: base(text)
+	{
+
+	}
+};
+
 public class Parser
 {
   Lexer lexer;
@@ -99,9 +108,10 @@ public class Parser
 			return new Json.Number{ value = data.value };
 		}
 		default:
-			// error.
-			Debug.Assert(false);
-			return new Json.Null{ };
+		{
+			var token = take();
+			throw new ParsingException("unexpected start of expression '" + token.text.ToString() + "'");
+		}
 		}
 	}
 

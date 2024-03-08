@@ -1,6 +1,15 @@
 using System;
 using System.Diagnostics;
 
+public class LexingException: Exception
+{
+	public LexingException(string text)
+		: base(text)
+	{
+
+	}
+};
+
 public class Lexer
 {
   public const byte LOOKAHEAD = 1;
@@ -52,11 +61,9 @@ public class Lexer
 
   public void expect(Token.Tag expected)
   {
-    if (peek() != expected)
-		{
-			// TODO: error.
-			Debug.Assert(false);
-		}
+		var actual = peek();
+    if (actual != expected)
+			throw new LexingException("expected '" + expected + "' but got '" + actual + "'");
     consume();
   }
 
@@ -84,7 +91,7 @@ public class Lexer
 			var unescaped_string = new System.Text.StringBuilder();
 
 			++i;
-			while (i < source.Length && text[i] != '"')
+			while (i + 1 < source.Length && text[i] != '"')
 			{
 				if (text[i] == '\\')
 				{
@@ -122,25 +129,17 @@ public class Lexer
 						i += 4;
 					} break;
 					default:
-						// Invalid escape sequence.
-						Debug.Assert(false);
-						break;
+						throw new LexingException("invalid escape sequence '" + text[i - 1] + "'");
 					}
 				}
 				else if (Char.IsControl(text[i]))
-				{
-					// Can't be control sequence.
-					Debug.Assert(false);
-				}
+					throw new LexingException("unexpected control sequence '" + (int)text[i] + "'");
 				else
 					unescaped_string.Append(text[i++]);
 			}
 
 			if (text[i] != '"')
-			{
-				// Unterminated string literal
-				Debug.Assert(false);
-			}
+				throw new LexingException("unterminated string");
 
 			data.value = unescaped_string.ToString();
 
@@ -199,9 +198,7 @@ public class Lexer
 			else if (keyword.SequenceEqual("null"))
 				token.tag = Token.Tag.Null;
 			else
-			{
-				Debug.Assert(false);
-			}
+				throw new LexingException("invalid keyword '" + make_span(source, old_i, i).ToString() + "'");
 
 			token.text = keyword;
 		}
@@ -240,9 +237,7 @@ public class Lexer
 				token.text = slice(source, old_i, i);
 				break;
 			default:
-				// Unexpected token
-				Debug.Assert(false);
-				break;
+				throw new LexingException("invalid character '" + text[i] + "'");
 			}
 		}
 
@@ -290,9 +285,7 @@ public class Lexer
 	static char from_four_digit_hex(Span<char> text)
 	{
 		if (text.Length < 4)
-		{
-			Debug.Assert(false);
-		}
+			throw new LexingException("expected at least 4 characters, but got " + (text.Length - 1)); // Account for null terminator.
 
 		char dst = (char)0;
 
@@ -301,9 +294,7 @@ public class Lexer
 			char digit = (char)0;
 
 			if (!from_hex_digit(ch, out digit))
-			{
-				Debug.Assert(false);
-			}
+				throw new LexingException("expected hexadecimal digit, but got '" + ch + "'");
 
 			dst = (char)(16 * dst + digit);
 		}
@@ -316,9 +307,7 @@ public class Lexer
 		int count = 0;
 
 		if (!Char.IsDigit(text[count]))
-		{
-			Debug.Assert(false);
-		}
+			throw new LexingException("expected digit, but got '" + text[count] + "'");
 
 		do
 			++count;
