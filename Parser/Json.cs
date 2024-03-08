@@ -3,32 +3,32 @@ global using JsonArrayValues = System.Collections.Generic.List<Json>;
 
 public abstract class Json
 {
-  public class Object: Json
+  public class Object : Json
   {
     public JsonObjectFields fields = new JsonObjectFields();
   };
 
-  public class Array: Json
+  public class Array : Json
   {
     public JsonArrayValues values = new JsonArrayValues();
   };
 
-  public class String: Json
+  public class String : Json
   {
     public string value = "";
   };
 
-  public class Number: Json
+  public class Number : Json
   {
-		public double value = 0;
+    public double value = 0;
   };
 
-  public class Boolean: Json
+  public class Boolean : Json
   {
     public bool value = false;
   };
 
-  public class Null: Json
+  public class Null : Json
   {
 
   };
